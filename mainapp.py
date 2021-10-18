@@ -5,7 +5,7 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 import tkinter.font as tkFont
-from tkmacosx import Button
+from tkmacosx import Button #can be deprecated if not running on MacOS
 from tkinter import Toplevel, filedialog, image_names
 
 app = tk.Tk()   #main widget creation
