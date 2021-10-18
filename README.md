@@ -1,2 +1,4 @@
 # resizr
-Image Resizing Appp
+Image Resizing App
+Coded by pranav-avn
+Coded on Python
