@@ -7,6 +7,8 @@ from PIL import Image, ImageTk
 import tkinter.font as tkFont
 from tkmacosx import Button #can be deprecated if not running on MacOS
 from tkinter import Toplevel, filedialog, image_names
+import math
+import io
 
 app = tk.Tk()   #main widget creation
 app.title('resizr')
@@ -100,6 +102,7 @@ def dimension_adj():    #file dimension adjustment
         def ratio_mismatch():
             
             def yes_fn():
+                wind3.pack_forget()
                 dimenresize(fwidth, fheight)
 
             def no_fn():
@@ -116,6 +119,7 @@ def dimension_adj():    #file dimension adjustment
         if ogratio!=fratio:
             ratio_mismatch()
         else:
+            wind3.pack_forget()
             dimenresize(fwidth, fheight)
 
             
@@ -135,23 +139,114 @@ def dimension_adj():    #file dimension adjustment
 
 
 def dimenresize(fw, fh):    #saving the resized file, resized thru dimension adjust
-    og_img = usr_img.resize((fw,fh))
-    fimage= ImageTk.PhotoImage(og_img)
-    imgformat = usr_img.format
-    og_img = og_img.save("output."+usr_img.format)
-    f_img = ImageTk.PhotoImage(og_img)
-    fimg_disp = Toplevel(app)
-    fimg_disp.title('Output Image')
-    fimg_ot = tk.Label(fimg_disp, image=f_img)
-    fimg_ot.pack()    
+    og_img = usr_img.resize((fw,fh), resample=Image.LANCZOS)
+    og_img.save("Dimension_Compression_opt."+usr_img.format)
+    wind4 = tk.Canvas(app, width=600, height=450)
+    wind4.pack(fill='both', expand='false')
+    wind4.create_image(0,0,image=bg, anchor='nw')
+    wind4.create_image(300,50,image=resizr)
+    wind4.create_text(300,125,text="Output Saved in Program Directory.", font=dafttext, fill='black')
+    wind4.create_text(300,155,text="Thank You for Using resizr.", font=dafttext, fill='black')   
 
 
-def filesize_adj(): #deprecated as of now
+def filesize_adj():
     wind3 = tk.Canvas(app, width=600, height=450)
     wind3.pack(fill='both', expand='false')
     wind3.create_image(0,0,image=bg, anchor='nw')
     wind3.create_image(300,50,image=resizr)
-    wind3.create_text(300,125,text="Yet to be Implemented, check back later :)", font=dafttext, fill='black')
+    
+    def fsize_sub():
+        fsize_kb = int(fsizeentry.get())
+        fsize = fsize_kb*1000
+        wind3.pack_forget()
+        filesizecompression(fsize)
+    
+    wind3.create_text(300,125,text="Enter the final output file size", font=dafttext, fill='black')
+    fsizeentry = tk.Entry(wind3, width=20, font=dafttext)
+    fsizeentry.insert(tk.END, 'File Size in KBytes')
+    fsizeentry.place(x=195, y=140)
+    submit_btn = Button(wind3, text="Submit", bg='#4E54C8', fg='#FFFFFF', borderless=1, overbackground='#8F94FB', command=fsize_sub, font=norm)
+    wind3.create_window(300,260, window=submit_btn)
+
+def filesizecompression(target):
+    if usr_img.format in 'JPEGjpeg':
+        Qmin, Qmax = 20, 100
+        Qreq = -1
+        m = 0
+        while Qmin <= Qmax:
+            m = math.floor((Qmin + Qmax) / 2)
+            #encoding to memory to estimate file size
+            buffer = io.BytesIO()
+            usr_img.save(buffer, format="JPEG", quality=m)
+            s = buffer.getbuffer().nbytes
+            #conforming to file size req
+            if s <= target:
+                Qreq = m
+                Qmin = m + 1
+            elif s > target:
+                Qmax = m - 1
+
+        if Qreq > -1:
+            usr_img.save("Fsize_Compression_opt.JPEG", format="JPEG", quality=Qreq)
+            wind4 = tk.Canvas(app, width=600, height=450)
+            wind4.pack(fill='both', expand='false')
+            wind4.create_image(0,0,image=bg, anchor='nw')
+            wind4.create_image(300,50,image=resizr)
+            wind4.create_text(300,125,text="Output saved to program directory.", font=dafttext, fill='black')
+            wind4.create_text(300,155,text=" Thank You for Using resizr. ", font=dafttext, fill='black')
+
+    else:
+        imgformat = usr_img.format
+        width, height = usr_img.size
+        fwidth, fheight = width, height
+        fwidth = math.floor(fwidth)
+        fheight = math.floor(fheight)
+        incrementvalue=0
+        incrementvalue1=2
+        incrementvalue2=1
+        loopval = 0
+        while fwidth!=0 and fheight!=0:
+            buffer = io.BytesIO()
+            print(math.floor(fwidth), math.floor(fheight))
+            resized_img = usr_img.resize((int(fwidth), int(fheight)), resample=Image.LANCZOS)
+            resized_img.save(buffer, format=imgformat)
+            s = buffer.getbuffer().nbytes
+            print(s)
+
+            if s <= target:
+                print("file became smaller than", target, "file size is", s)
+                fwidth = (((10-incrementvalue)+incrementvalue2)*10 + incrementvalue1)/100 * width
+                fheight = (((10-incrementvalue)+incrementvalue2)*10 + incrementvalue1)/100 * height
+                incrementvalue1+=2
+                incrementvalue2+=1
+                loopval=1
+                if s == target:
+                    print("target size reached")
+                    fsizeoutputsave(fwidth, fheight, imgformat)
+
+            elif s > target:
+                print("file is bigger than: ",target, s)
+                if loopval!=1:
+                    fwidth = ((10-incrementvalue)*10)/100 * width
+                    fheight = ((10-incrementvalue)*10)/100 * height
+                elif loopval==1:
+                    fsizeoutputsave(fwidth, fheight, imgformat)
+                    break
+
+            incrementvalue+=1
+        
+
+def fsizeoutputsave(fw, fh, imgformat):
+    fsizeot = usr_img.resize((math.floor(fw), math.floor(fh)), resample=Image.LANCZOS)
+    otptformat = "Fsize_Compression_opt." + imgformat
+    fsizeot.save(otptformat, format=imgformat)
+    wind4 = tk.Canvas(app, width=600, height=450)
+    wind4.pack(fill='both', expand='false')
+    wind4.create_image(0,0,image=bg, anchor='nw')
+    wind4.create_image(300,50,image=resizr)
+    wind4.create_text(300,125,text="Output saved to program directory.", font=dafttext, fill='black')
+    wind4.create_text(300,155,text=" Thank You for Using resizr. ", font=dafttext, fill='black')
+        
 
 
 browse_btn = Button(root, text="Browse", bg='#4E54C8', fg='#FFFFFF', borderless=1, overbackground='#8F94FB', command=browse_event, font=norm)   #browse button
