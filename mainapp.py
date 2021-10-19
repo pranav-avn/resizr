@@ -9,6 +9,7 @@ from tkmacosx import Button #can be deprecated if not running on MacOS
 from tkinter import Toplevel, filedialog, image_names
 import math
 import io
+from tkinter import messagebox
 
 app = tk.Tk()   #main widget creation
 app.title('resizr')
@@ -193,6 +194,7 @@ def filesizecompression(target):
                 Qmax = m - 1
 
         if Qreq > -1:
+            print("saving compressed jpeg")
             usr_img.save("Fsize_Compression_opt.JPEG", format="JPEG", quality=Qreq)
             wind4 = tk.Canvas(app, width=600, height=450)
             wind4.pack(fill='both', expand='false')
@@ -200,6 +202,8 @@ def filesizecompression(target):
             wind4.create_image(300,50,image=resizr)
             wind4.create_text(300,125,text="Output saved to program directory.", font=dafttext, fill='black')
             wind4.create_text(300,155,text=" Thank You for Using resizr. ", font=dafttext, fill='black')
+        else:
+            messagebox.showinfo("Compression Error", "ERROR: No acceptble quality factor found")
 
     else:
         imgformat = usr_img.format
@@ -226,9 +230,10 @@ def filesizecompression(target):
                 incrementvalue1+=2
                 incrementvalue2+=1
                 loopval=1
-                if s == target:
+                if isclose(s, target, abs_tol=100):
                     print("target size reached")
                     fsizeoutputsave(fwidth, fheight, imgformat)
+                    break
 
             elif s > target:
                 print("file is bigger than: ",target, s)
@@ -243,6 +248,7 @@ def filesizecompression(target):
         
 
 def fsizeoutputsave(fw, fh, imgformat):
+    print("saving compressed non jpeg")
     fsizeot = usr_img.resize((math.floor(fw), math.floor(fh)), resample=Image.LANCZOS)
     otptformat = "Fsize_Compression_opt." + imgformat
     fsizeot.save(otptformat, format=imgformat)
