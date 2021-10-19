@@ -83,8 +83,10 @@ def resize_options():   #resize methods
     wind2.create_image(300,50,image=resizr)
     wind2.create_text(300,155,text="Choose the method to resize image.", font=dafttext, fill='black')
     dimensions_btn = Button(wind2, text="Dimensions", bg='#4E54C8', fg='#FFFFFF', borderless=1, overbackground='#8F94FB', command=dimension_adj_inter, font=norm)
+    #dimensions_btn = Button(wind2, text="Dimensions", bg='#4E54C8', fg='#FFFFFF', command=dimension_adj_inter, font=norm) use this if not on macOS
     wind2.create_window(300,220, window=dimensions_btn)
     filesize_btn = Button(wind2, text="File Size", bg='#4E54C8', fg='#FFFFFF', borderless=1, overbackground='#8F94FB', command=filesize_adj_inter, font=norm)
+    #filesize_btn = Button(wind2, text="File Size", bg='#4E54C8', fg='#FFFFFF', command=filesize_adj_inter, font=norm) use this line if not on macOS
     wind2.create_window(300,280, window=filesize_btn)
 
 
@@ -112,8 +114,10 @@ def dimension_adj():    #file dimension adjustment
             wind3.create_text(300,410,text="Final resolution not matching aspect ratio of original image", font=dafttext, fill='red')
             wind3.create_text(300,440,text="Image might be skewed. Do you still wish to proceed?", font=dafttext, fill='red')
             yes_btn = Button(wind3, text="Yes", bg='#4E54C8', fg='#FFFFFF', borderless=1, overbackground='#8F94FB', command=yes_fn, font=normh)
+            #yes_btn = Button(wind3, text="Yes", bg='#4E54C8', fg='#FFFFFF', command=yes_fn, font=normh) use this if not on macOS
             wind3.create_window(300,310, window=yes_btn)
             no_btn = Button(wind3, text="No", bg='#4E54C8', fg='#FFFFFF', borderless=1, overbackground='#8F94FB', command=no_fn, font=normh)
+            #no_btn = Button(wind3, text="No", bg='#4E54C8', fg='#FFFFFF', command=no_fn, font=normh) use this line if not on macOS
             wind3.create_window(300,360, window=no_btn)
         
         if ogratio!=fratio:
@@ -135,6 +139,7 @@ def dimension_adj():    #file dimension adjustment
     fwidthentry.place(x=250, y=140)
     fheightentry.place(x=250, y=190)
     submit_btn = Button(wind3, text="Submit", bg='#4E54C8', fg='#FFFFFF', borderless=1, overbackground='#8F94FB', command=dimension_sub, font=norm)
+    #submit_btn = Button(wind3, text="Submit", bg='#4E54C8', fg='#FFFFFF', command=dimension_sub, font=norm) deprecate above line and use this line if not on macOS
     wind3.create_window(300,260, window=submit_btn)
 
 
@@ -166,6 +171,7 @@ def filesize_adj():
     fsizeentry.insert(tk.END, 'File Size in KBytes')
     fsizeentry.place(x=195, y=140)
     submit_btn = Button(wind3, text="Submit", bg='#4E54C8', fg='#FFFFFF', borderless=1, overbackground='#8F94FB', command=fsize_sub, font=norm)
+    #submit_btn = Button(wind3, text="Submit", bg='#4E54C8', fg='#FFFFFF', command=fsize_sub, font=norm) deprecate above line and use this line if not on macOS
     wind3.create_window(300,260, window=submit_btn)
 
 def filesizecompression(target):
@@ -250,6 +256,7 @@ def fsizeoutputsave(fw, fh, imgformat):
 
 
 browse_btn = Button(root, text="Browse", bg='#4E54C8', fg='#FFFFFF', borderless=1, overbackground='#8F94FB', command=browse_event, font=norm)   #browse button
+#browse_btn = Button(root, text="Browse", bg='#4E54C8', fg='#FFFFFF', command=browse_event, font=norm) deprecate above line if not on macOS
 root.create_window(300,250, window=browse_btn)
 
 
