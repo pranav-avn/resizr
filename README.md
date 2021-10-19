@@ -2,7 +2,10 @@
 Image Resizing App
 Coded on Python
 
+to run, execute mainapp.py
+
 required fonts:
+
 MADE Outer Sans: https://www.dafont.com/made-outer-sans.font
 
 Bebas Neue: https://www.dafont.com/bebas-neue.font
