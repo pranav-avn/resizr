@@ -50,10 +50,13 @@ def browse_event(): #opens file browser and imports image
     browse_btn['text'] = 'Loading...'
     global imported_image
     global usr_img
-    app.file = filedialog.askopenfilename(title="Choose an image to resize", filetypes=[('Images', ['.png','.jpg', '.jpeg', '.gif'])])
+    app.file = filedialog.askopenfilename(title="Choose an image to resize", filetypes=[('Images', ['.png','.jpg', '.jpeg'])])
     usr_img = Image.open(app.file)
     width, height = usr_img.size
-    if width>=1024 and height>=1024:
+    if width>=4096 and height>=4096:
+        width=width//8
+        height=height//8
+    elif width>=1024 and height>=1024:
         width=width//4
         height=height//4
     elif width>=256 and height>=256:
@@ -176,6 +179,7 @@ def filesize_adj():
     wind3.create_window(300,260, window=submit_btn)
 
 def filesizecompression(target):
+    imgformat = usr_img.format
     if usr_img.format in 'JPEGjpeg':
         Qmin, Qmax = 20, 100
         Qreq = -1
@@ -206,52 +210,59 @@ def filesizecompression(target):
             messagebox.showinfo("Compression Error", "ERROR: No acceptble quality factor found")
 
     else:
-        imgformat = usr_img.format
-        width, height = usr_img.size
-        fwidth, fheight = width, height
-        fwidth = math.floor(fwidth)
-        fheight = math.floor(fheight)
-        incrementvalue=0
-        incrementvalue1=2
-        incrementvalue2=1
-        loopval = 0
-        while fwidth!=0 and fheight!=0:
+        alpha = usr_img.split()[-1]
+        bg1 = Image.new("RGBA", usr_img.size, (0,0,0,255))
+        bg1.paste(alpha, mask=alpha)
+        bg1.save("Alphamask.png", optimize=True)
+
+        rgb_im = usr_img.convert('RGB')
+        rgb_im.save("Intermediate.jpg","JPEG", quality = 100)
+        interimg = Image.open("Intermediate.jpg")
+        Qmin, Qmax = 20, 100
+        Qreq = -1
+        m = 0
+        while Qmin <= Qmax:
+            m = math.floor((Qmin + Qmax) / 2)
+            #encoding to memory to estimate file size
             buffer = io.BytesIO()
-            print(math.floor(fwidth), math.floor(fheight))
-            resized_img = usr_img.resize((int(fwidth), int(fheight)), resample=Image.LANCZOS)
-            resized_img.save(buffer, format=imgformat)
+            interimg.save(buffer, format="JPEG", quality=m)
             s = buffer.getbuffer().nbytes
             print(s)
-
+            #conforming to file size req
             if s <= target:
-                print("file became smaller than", target, "file size is", s)
-                fwidth = (((10-incrementvalue)+incrementvalue2)*10 + incrementvalue1)/100 * width
-                fheight = (((10-incrementvalue)+incrementvalue2)*10 + incrementvalue1)/100 * height
-                incrementvalue1+=2
-                incrementvalue2+=1
-                loopval=1
-                if isclose(s, target, abs_tol=100):
-                    print("target size reached")
-                    fsizeoutputsave(fwidth, fheight, imgformat)
-                    break
-
+                Qreq = m
+                Qmin = m + 1
             elif s > target:
-                print("file is bigger than: ",target, s)
-                if loopval!=1:
-                    fwidth = ((10-incrementvalue)*10)/100 * width
-                    fheight = ((10-incrementvalue)*10)/100 * height
-                elif loopval==1:
-                    fsizeoutputsave(fwidth, fheight, imgformat)
-                    break
+                Qmax = m - 1
 
-            incrementvalue+=1
+        if Qreq > -1:
+            interimg.save("Compressionopt.JPEG", format="JPEG", quality=Qreq)
+            jpgimg = Image.open("Compressionopt.JPEG")
+            jpgimg.putalpha(alpha)
+            otptformat = "Compressed_dimen." + imgformat
+            jpgimg.save(otptformat , format=imgformat)
+            os.remove("Intermediate.JPEG")
+            os.remove("Compressionopt.JPEG")
+            wind4 = tk.Canvas(app, width=600, height=450)
+            wind4.pack(fill='both', expand='false')
+            wind4.create_image(0,0,image=bg, anchor='nw')
+            wind4.create_image(300,50,image=resizr)
+            wind4.create_text(300,125,text="Output saved to program directory.", font=dafttext, fill='black')
+            wind4.create_text(300,155,text=" Thank You for Using resizr. ", font=dafttext, fill='black')
+
+        else:
+            messagebox.showinfo("Compression Error", "ERROR: No acceptble quality factor found")
         
 
 def fsizeoutputsave(fw, fh, imgformat):
+    width, height = usr_img.size
     print("saving compressed non jpeg")
     fsizeot = usr_img.resize((math.floor(fw), math.floor(fh)), resample=Image.LANCZOS)
     otptformat = "Fsize_Compression_opt." + imgformat
+    otpt_format = "Compression_opt." + imgformat
+    fsizeott = fsizeot.resize((width,height), resample = Image.ANTIALIAS)
     fsizeot.save(otptformat, format=imgformat)
+    fsizeott.save(otpt_format, format=imgformat, optimize = True)
     wind4 = tk.Canvas(app, width=600, height=450)
     wind4.pack(fill='both', expand='false')
     wind4.create_image(0,0,image=bg, anchor='nw')
