@@ -10,6 +10,8 @@ from tkinter import Toplevel, filedialog, image_names
 import math
 import io
 from tkinter import messagebox
+import os
+import sys
 
 app = tk.Tk()   #main widget creation
 app.title('resizr')
@@ -112,18 +114,14 @@ def dimension_adj():    #file dimension adjustment
                 dimenresize(fwidth, fheight)
 
             def no_fn():
-                app.quit
+                app.quit()
 
-            
-            wind3.create_text(300,410,text="Final resolution not matching aspect ratio of original image", font=dafttext, fill='red')
-            wind3.create_text(300,440,text="Image might be skewed. Do you still wish to proceed?", font=dafttext, fill='red')
-            yes_btn = Button(wind3, text="Yes", bg='#4E54C8', fg='#FFFFFF', borderless=1, overbackground='#8F94FB', command=yes_fn, font=normh)
-            #yes_btn = Button(wind3, text="Yes", bg='#4E54C8', fg='#FFFFFF', command=yes_fn, font=normh) use this if not on macOS
-            wind3.create_window(300,310, window=yes_btn)
-            no_btn = Button(wind3, text="No", bg='#4E54C8', fg='#FFFFFF', borderless=1, overbackground='#8F94FB', command=no_fn, font=normh)
-            #no_btn = Button(wind3, text="No", bg='#4E54C8', fg='#FFFFFF', command=no_fn, font=normh) use this line if not on macOS
-            wind3.create_window(300,360, window=no_btn)
-        
+            ratioq = messagebox.askquestion('Aspect Ratio Mismatch', 'Aspect Ratio Mismatch\n\nImage might be skewed\nDo you want to continue?')
+            if ratioq == 'yes':
+                yes_fn()
+            elif ratioq == 'no':
+                no_fn()
+           
         if ogratio!=fratio:
             ratio_mismatch()
         else:
@@ -131,7 +129,6 @@ def dimension_adj():    #file dimension adjustment
             dimenresize(fwidth, fheight)
 
             
-
 
     wind3.create_image(0,0,image=bg, anchor='nw')
     wind3.create_image(300,50,image=resizr)
@@ -179,6 +176,11 @@ def filesize_adj():
     wind3.create_window(300,260, window=submit_btn)
 
 def filesizecompression(target):
+    
+    def restart():
+        python = sys.executable
+        os.execl(python, python, * sys.argv)
+    
     imgformat = usr_img.format
     if usr_img.format in 'JPEGjpeg':
         Qmin, Qmax = 20, 100
@@ -207,7 +209,12 @@ def filesizecompression(target):
             wind4.create_text(300,125,text="Output saved to program directory.", font=dafttext, fill='black')
             wind4.create_text(300,155,text=" Thank You for Using resizr. ", font=dafttext, fill='black')
         else:
-            messagebox.showinfo("Compression Error", "ERROR: No acceptble quality factor found")
+            MsgBox = messagebox.askretrycancel('Compression Error','ERROR: No acceptble quality factor found',icon = 'warning')
+            if MsgBox:
+                messagebox.showinfo('Restart','You will now return to the main menu')
+                restart()
+            else:
+                app.quit()
 
     else:
         alpha = usr_img.split()[-1]
@@ -241,7 +248,7 @@ def filesizecompression(target):
             jpgimg.putalpha(alpha)
             otptformat = "Compressed_dimen." + imgformat
             jpgimg.save(otptformat , format=imgformat)
-            os.remove("Intermediate.JPEG")
+            os.remove("Intermediate.jpg")
             os.remove("Compressionopt.JPEG")
             wind4 = tk.Canvas(app, width=600, height=450)
             wind4.pack(fill='both', expand='false')
@@ -251,27 +258,13 @@ def filesizecompression(target):
             wind4.create_text(300,155,text=" Thank You for Using resizr. ", font=dafttext, fill='black')
 
         else:
-            messagebox.showinfo("Compression Error", "ERROR: No acceptble quality factor found")
-        
-
-def fsizeoutputsave(fw, fh, imgformat):
-    width, height = usr_img.size
-    print("saving compressed non jpeg")
-    fsizeot = usr_img.resize((math.floor(fw), math.floor(fh)), resample=Image.LANCZOS)
-    otptformat = "Fsize_Compression_opt." + imgformat
-    otpt_format = "Compression_opt." + imgformat
-    fsizeott = fsizeot.resize((width,height), resample = Image.ANTIALIAS)
-    fsizeot.save(otptformat, format=imgformat)
-    fsizeott.save(otpt_format, format=imgformat, optimize = True)
-    wind4 = tk.Canvas(app, width=600, height=450)
-    wind4.pack(fill='both', expand='false')
-    wind4.create_image(0,0,image=bg, anchor='nw')
-    wind4.create_image(300,50,image=resizr)
-    wind4.create_text(300,125,text="Output saved to program directory.", font=dafttext, fill='black')
-    wind4.create_text(300,155,text=" Thank You for Using resizr. ", font=dafttext, fill='black')
-        
-
-
+            MsgBox = messagebox.askretrycancel('Compression Error','ERROR: No acceptble quality factor found',icon = 'warning')
+            if MsgBox:
+                messagebox.showinfo('Restart','You will now return to the main menu')
+                restart()
+            else:
+                app.quit()
+       
 browse_btn = Button(root, text="Browse", bg='#4E54C8', fg='#FFFFFF', borderless=1, overbackground='#8F94FB', command=browse_event, font=norm)   #browse button
 #browse_btn = Button(root, text="Browse", bg='#4E54C8', fg='#FFFFFF', command=browse_event, font=norm) deprecate above line if not on macOS
 root.create_window(300,250, window=browse_btn)
